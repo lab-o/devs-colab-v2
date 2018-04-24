@@ -1,5 +1,4 @@
 FROM node:latest
-ENTRYPOINT node .
 WORKDIR /tweetloader
 COPY node_modules ./node_modules/
-COPY index.js package.json searches.txt ./
+COPY index.js elastic.js twitter.js package.json searches.txt ./

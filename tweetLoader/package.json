@@ -9,6 +9,7 @@
   "author": "devscolab",
   "license": "MIT",
   "dependencies": {
+    "elasticsearch": "^14.2.2",
     "twitter": "^1.7.1"
   }
 }

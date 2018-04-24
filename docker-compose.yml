@@ -5,7 +5,10 @@ services:
     env_file: .env
     depends_on:
       - "elastic"
-    command: ["./wait-for-it.sh", "db:5432", "--", "python", "app.py"]
+    command: ["node", "."]
+    restart: on-failure
+    networks:
+      - esnet
   elastic:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
     container_name: elasticsearch
