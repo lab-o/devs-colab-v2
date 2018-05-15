@@ -17,3 +17,13 @@ Puis suivre ces instructions:
 - Aller dans le dossier tweetLoader et lancer `npm install`
 - Définissez l'option `vm.max_map_count` à une valeur correcte en suivant les instructions de l'encadré "Important" de [ce tutoriel](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode)
 - Remonter à la racine, et lancer `docker-compose up`
+
+
+## Structure des données :
+- id
+- localisation (place.bounding_box.coordinates[0])
+
+- uri tweet
+- contenu (texte)
+- date du tweets
+- auteur (nom, )

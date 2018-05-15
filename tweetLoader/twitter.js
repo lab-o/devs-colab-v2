@@ -11,8 +11,24 @@ const client = new Twitter({
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-elastic.waitForElasticAsync().then(()=>{
+async function queryTwitterAndInsert(search)
+{
+  var tweets = await client.get('search/tweets', {q: search.join(" OR "), result_type: "recent", count: 100});
+  // Select only the tweets with a place
+  var filterTweets = tweets.statuses
+    .filter(t=>t.place)
+    .map(t => {
+      return {
+        "id": t.id,
+        "location": t.place.bounding_box
+      };
+    });
+  console.log(filterTweets);
+  await elastic.insertTweets(filterTweets);
+  console.log(`${filterTweets.length} tweets inserted!`);
+}
 
+elastic.waitForElasticAsync().then(()=>{
   const lineReader = readline.createInterface({
     input: fs.createReadStream('searches.txt')
   });
@@ -23,16 +39,13 @@ elastic.waitForElasticAsync().then(()=>{
   })
 
   lineReader.on('close', function() {
-    client.get('search/tweets', {q: lines.join(" OR "), result_type: "recent", count: 100})
-    .then(function (tweets) {
-      var filterTweets = tweets.statuses.filter(t=>t.place);
-      console.log(filterTweets);
-      console.log(filterTweets.length);
-    })
-    .catch(function (error) {
-      console.log(error);
-      throw error;
-    })
+    queryTwitterAndInsert(lines)
+      .catch(function (error) {
+        console.log(error);
+        throw error;
+      })
   });
-
+}).catch(function (error) {
+  console.log(error);
+  throw error;
 })
