@@ -1,8 +1,4 @@
 const Twitter = require('twitter');
-const fs = require('fs');
-const readline = require('readline');
-
-const elastic = require('../elastic');
 
 class TwitterClient {
     constructor(elastic) {
