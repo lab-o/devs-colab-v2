@@ -1,51 +1,40 @@
-var elastic = require("../elastic");
-
 const Twitter = require('twitter');
 const fs = require('fs');
 const readline = require('readline');
 
-const client = new Twitter({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-});
+const elastic = require('../elastic');
 
-async function queryTwitterAndInsert(search)
-{
-  var tweets = await client.get('search/tweets', {q: search.join(" OR "), result_type: "recent", count: 100});
-  // Select only the tweets with a place
-  var filterTweets = tweets.statuses
-    .filter(t=>t.place)
-    .map(t => {
-      return {
-        "id": t.id,
-        "location": t.place.bounding_box
-      };
-    });
-  console.log(filterTweets);
-  await elastic.insertTweets(filterTweets);
-  console.log(`${filterTweets.length} tweets inserted!`);
+class TwitterClient {
+    constructor(elastic) {
+        this.elastic = elastic;
+        this.client = new Twitter({
+            consumer_key: process.env.TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+            access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+            access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+        });
+    }
+
+    async queryTwitterAndInsert(search) {
+        const tweets = await this.client.get('search/tweets', {
+            q: search.join(" OR "),
+            result_type: "recent",
+            count: 100
+        });
+
+        // Select only the tweets with a place
+        const filteredTweets = tweets.statuses
+            .filter(t=>t.place)
+            .map(tweet => {
+                return {
+                    "id": tweet.id,
+                    "location": tweet.place.bounding_box
+                };
+            });
+        console.log(filteredTweets);
+        await this.elastic.insertTweets(filteredTweets);
+        console.log(`${filteredTweets.length} tweets inserted!`);
+    }
 }
 
-elastic.waitForElasticAsync().then(()=>{
-  const lineReader = readline.createInterface({
-    input: fs.createReadStream('searches.txt')
-  });
-
-  var lines = [];
-  lineReader.on('line', function(line) {
-    lines.push(line);
-  })
-
-  lineReader.on('close', function() {
-    queryTwitterAndInsert(lines)
-      .catch(function (error) {
-        console.log(error);
-        throw error;
-      })
-  });
-}).catch(function (error) {
-  console.log(error);
-  throw error;
-})
+module.exports = TwitterClient;
