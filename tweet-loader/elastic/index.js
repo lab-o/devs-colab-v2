@@ -9,8 +9,8 @@ class ElasticClient {
     }
 
     async pingElastic() {
-        return new Promise(function(resolve, reject) {
-            elasticClient.ping({
+        return new Promise((resolve, reject) => {
+            this.client.ping({
                 requestTimeout: 30000,
             }, function (error) {
                 if (error) {
@@ -27,16 +27,16 @@ class ElasticClient {
     }
 
     async initElastic() {
-        while (!await pingElastic()) {
+        while (!await this.pingElastic()) {
             console.log("elastic is not ready");
-            await sleep(2000);
+            await this.sleep(2000);
         }
         console.log('init OK');
-        const indiceExists = await elasticClient.indices.exists({ index: 'tweet' });
+        const indiceExists = await this.client.indices.exists({ index: 'tweet' });
     
         if (!indiceExists) {
             console.log("Index does not exist, creating it.");
-            await elasticClient.indices.create({
+            await this.client.indices.create({
                 index: 'tweet',
                 body: {
                     mappings: {
