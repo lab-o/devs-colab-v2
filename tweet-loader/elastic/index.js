@@ -1,7 +1,7 @@
 var elasticsearch = require("elasticsearch");
 
 var elasticClient = new elasticsearch.Client({
-  hosts: ['elastic1:9200', 'elastic2:9200'],
+  hosts: ['elastic_first:9200', 'elastic_second:9200'],
   log: 'error'
 });
 
@@ -28,7 +28,7 @@ async function initElastic() {
       console.log("elastic is not ready");
       await sleep(2000);
     }
-
+    console.log('init OK');
     const indiceExists = await elasticClient.indices.exists({ index: 'tweet' });
 
     if (!indiceExists) {
@@ -47,7 +47,7 @@ async function initElastic() {
           }
         }
       })
-    }
+    } else console.log('index already exists');
 }
 let readyPromise = initElastic();
 
