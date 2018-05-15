@@ -1,4 +1,4 @@
-var elastic = require("./elastic.js");
+var elastic = require("../elastic");
 
 const Twitter = require('twitter');
 const fs = require('fs');
