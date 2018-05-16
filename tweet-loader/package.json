@@ -13,8 +13,6 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
-    "@types/elasticsearch": "^5.0.23",
-    "@types/twitter": "0.0.28",
-    "remove": "^0.1.5"
+    "@types/elasticsearch": "^5.0.23"
   }
 }
