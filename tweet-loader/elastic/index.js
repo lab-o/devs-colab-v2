@@ -1,63 +1,42 @@
 const { Client } = require('elasticsearch');
+const TweetIndice = require('./indices/tweet');
+const pause = require('../services/pause');
 
 class ElasticClient {
-    constructor() {
-        this.client = new Client({
-            hosts: ['elastic_first:9200', 'elastic_second:9200'],
-            log: 'error'
-        })
+    constructor(hosts) {
+        this.client = new Client({ hosts, log: 'error' })
+        console.log(`[Elastic] Create elasticsearch client from hosts (${hosts.join(', ')}).`);
     }
 
-    async pingElastic() {
-        return new Promise((resolve, reject) => {
-            this.client.ping({
-                requestTimeout: 30000,
-            }, function (error) {
-                if (error) {
-                    resolve(false);
-                } else {
-                    resolve(true);
-                }
-            });
-        })
-    }
-
-    async sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async initElastic() {
-        while (!await this.pingElastic()) {
-            console.log("elastic is not ready");
-            await this.sleep(2000);
+    async waitForReadyState() {
+        const state = await this.client.ping({ requestTimeout: 30000 })
+        .catch(e => console.log(`[Elastic] ${e.message}.`));
+        if (!state) {
+            console.log('[Elastic] Retry state\'s verification in 5 seconds.');
+            await pause(5000);
+            return await this.waitForReadyState();
         }
-        console.log('init OK');
+        console.log('[Elastic] Client are ready.');
+        return state;
+    }
+
+    async createIndices() {
+        console.log('[Elastic] Check if "tweet" index exists.');
         const indiceExists = await this.client.indices.exists({ index: 'tweet' });
-    
-        if (!indiceExists) {
-            console.log("Index does not exist, creating it.");
-            await this.client.indices.create({
-                index: 'tweet',
-                body: {
-                    mappings: {
-                        "tweet" : {
-                            "properties" : {
-                                "location" : {
-                                    "type": "geo_shape"
-                                }
-                            }
-                        }
-                    }
-                }
-            })
-        } else console.log('index already exists');
+        if (indiceExists) console.log('[Elastic] Index "tweet" already exists, skipping creation process.');
+        else {
+            console.log('[Elastic] Index does not exist, creating it.');
+            await this.client.indices.create(TweetIndice);
+            console.log('[Elastic] Index "tweet" created.');
+        }
     }
 
     async insertTweets(tweets) {
+        console.log(`[Elastic] Insert ${tweets.length} tweets.`);
         const body = [];
         for (const tweet of tweets) {
-            body.push({ index:    { _index: 'tweet', _type: 'tweet', _id: tweet.id } });
-            body.push({ location : tweet.location})
+            body.push({ index: { _index: 'tweet', _type: 'tweet', _id: tweet.id }});
+            body.push({ location : tweet.location })
         }
         return this.client.bulk({ body });
     }

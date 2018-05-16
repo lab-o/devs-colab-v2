@@ -1,14 +1,10 @@
 const Twitter = require('twitter');
 
 class TwitterClient {
-    constructor(elastic) {
+    constructor({ elastic, twitter }) {
+        const { consumer_key, consumer_secret, access_token_key, access_token_secret } = twitter;
         this.elastic = elastic;
-        this.client = new Twitter({
-            consumer_key: process.env.TWITTER_CONSUMER_KEY,
-            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-            access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-            access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-        });
+        this.client = new Twitter({ consumer_key, consumer_secret, access_token_key, access_token_secret });
     }
 
     async queryTwitterAndInsert(search) {
@@ -20,16 +16,16 @@ class TwitterClient {
 
         // Select only the tweets with a place
         const filteredTweets = tweets.statuses
-            .filter(t=>t.place)
+            .filter(tweet => tweet.place)
             .map(tweet => {
                 return {
                     "id": tweet.id,
                     "location": tweet.place.bounding_box
                 };
             });
-        console.log(filteredTweets);
+        console.log('[Twitter]', filteredTweets);
         await this.elastic.insertTweets(filteredTweets);
-        console.log(`${filteredTweets.length} tweets inserted!`);
+        console.log(`[Twitter] ${filteredTweets.length} tweets inserted!`);
     }
 }
 
