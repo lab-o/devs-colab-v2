@@ -1,6 +1,9 @@
 // Import our classes
 const ElasticClient = require("./elastic");
 const TwitterClient = require("./twitter");
+
+// Import our data
+const tweetIndice = require('./elastic/indices/tweet');
 const twitterSearches = require('./twitter/searches');
 
 // Build the app
@@ -15,7 +18,7 @@ const twitterSearches = require('./twitter/searches');
     await elastic.waitForReadyState();
 
     console.log('[Main] Check indices.');
-    await elastic.createIndices();
+    await elastic.createIndices([ tweetIndice ]);
 
     console.log('[Main] Initialisaton OK, set-up twitter.');
     const twitter = new TwitterClient({

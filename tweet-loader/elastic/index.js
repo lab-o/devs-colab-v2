@@ -1,5 +1,4 @@
 const { Client } = require('elasticsearch');
-const TweetIndice = require('./indices/tweet');
 const pause = require('../services/pause');
 
 class ElasticClient {
@@ -20,15 +19,22 @@ class ElasticClient {
         return state;
     }
 
-    async createIndices() {
-        console.log('[Elastic] Check if "tweet" index exists.');
-        const indiceExists = await this.client.indices.exists({ index: 'tweet' });
-        if (indiceExists) console.log('[Elastic] Index "tweet" already exists, skipping creation process.');
+    async createIndice(indice) {
+        console.log(`[Elastic] Check if "${indice.index}" index exists.`);
+        const indiceExists = await this.client.indices.exists({ index: indice.index });
+        if (indiceExists) console.log(`[Elastic] Index "${indice.index}" already exists, skipping creation process.`);
         else {
-            console.log('[Elastic] Index does not exist, creating it.');
-            await this.client.indices.create(TweetIndice);
-            console.log('[Elastic] Index "tweet" created.');
+            console.log(`[Elastic] Index "${indice.index}" does not exist, creating it.`);
+            await this.client.indices.create(indice);
+            console.log(`[Elastic] Index "${indice.index}" created.`);
         }
+    }
+
+    async createIndices(indices) {
+        return await Promise.all(
+            indices
+                .map(indice => this.createIndice(indice))
+        )
     }
 
     async insertTweets(tweets) {
