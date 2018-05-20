@@ -11,5 +11,8 @@
   "dependencies": {
     "elasticsearch": "^14.2.2",
     "twitter": "^1.7.1"
+  },
+  "devDependencies": {
+    "@types/elasticsearch": "^5.0.23"
   }
 }

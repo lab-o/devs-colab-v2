@@ -1,17 +1,17 @@
 version: '3'
 services:
-  tweetloader:
-    build: ./tweetLoader
+  tweet_loader:
+    build: ./tweet-loader
     env_file: .env
     depends_on:
-      - "elastic1"
+      - "elastic_first"
     command: ["node", "."]
     restart: on-failure
     networks:
       - esnet
-  elastic1:
+  elastic_first:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
-    container_name: elastic1
+    container_name: elastic_first
     environment:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
@@ -26,14 +26,14 @@ services:
       - 9200:9200
     networks:
       - esnet
-  elastic2:
+  elastic_second:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
-    container_name: elastic2
+    container_name: elastic_second
     environment:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "discovery.zen.ping.unicast.hosts=elastic1"
+      - "discovery.zen.ping.unicast.hosts=elastic_first"
     ulimits:
       memlock:
         soft: -1
