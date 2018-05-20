@@ -22,17 +22,17 @@ const twitterSearches = require('./twitter/searches');
 
     console.log('[Main] Initialisaton OK, set-up twitter.');
     const twitter = new TwitterClient({
-        elastic,
-        twitter: {
-            consumer_key: process.env.TWITTER_CONSUMER_KEY,
-            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-            access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-            access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-        }
+        consumer_key: process.env.TWITTER_CONSUMER_KEY,
+        consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+        access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+        access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
-    console.log('[Main] Query twitter and insert in elastic.');
-    await twitter.queryTwitterAndInsert(twitterSearches);
+    console.log('[Main] Query tweets.');
+    const tweets = await twitter.getTweets(twitterSearches);
+
+    console.log(`[Main] Insert ${tweets.length} tweet(s) in elastic.`);
+    await elastic.insertTweets(tweets);
 })()
 .then(() => console.log('[Main] Application finished successfully.'))
 .catch(console.error)
